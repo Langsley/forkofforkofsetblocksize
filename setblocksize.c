@@ -102,6 +102,7 @@ int  main(int  argc, char**  argv)
    int  sg_fd;
    int  i;
    int  ok;
+   int skipPrompt = 0;
    int  buf;
    char  sbuf[256];  
    char*  file_name = NULL;
@@ -152,6 +153,11 @@ int  main(int  argc, char**  argv)
             timeout =  buf * 60 * HZ;
             if (ok != 1)  break;
          }
+         else if (!strncmp(argv[i], "-y", 2))
+         {
+            /* skip confirmation prompts */
+            skipPrompt = 1;
+         }
          else
          {
             printf("   Unknown parameter: %s\n", argv[i]);
@@ -178,7 +184,8 @@ int  main(int  argc, char**  argv)
       sprintf(sbuf, "   Usage: '");
       strcat(sbuf, NAME);
       strcat(sbuf,
-       " [-b<Blocksize in Byte>] [-t<Timeout in Minutes>] <sg_device>'\n\n");
+       " [-b<Blocksize in Byte>] [-t<Timeout in Minutes>] [-y] <sg_device>'\n");
+      strcat(sbuf, "      [-y]: skips confirmation prompts \n\n");
       fprintf(stderr, sbuf);
       exit(1);
    }
@@ -357,16 +364,25 @@ command!\n");
       close(sg_fd);
       exit(1);
    }
-   printf("Do you really want to reformat this device [y/n]? ");
-   fflush(stdout);
-   fscanf(stdin, "%c", &sbuf[0]);
-   printf("\n");
-   if (sbuf[0] != 'y')
+   
+   if(skipPrompt)
    {
-      printf("Aborted.\n\nExiting ...\n\n");
-      close(sg_fd);
-      exit(1);   
+      printf("-y option specified, continuing with format... ");
    }
+   else
+   {
+      printf("Do you really want to reformat this device [y/n]? ");
+      fflush(stdout);
+      fscanf(stdin, "%c", &sbuf[0]);
+      printf("\n");
+      if (sbuf[0] != 'y')
+      {
+         printf("Aborted.\n\nExiting ...\n\n");
+         close(sg_fd);
+         exit(1);   
+      }
+   }
+   
 
    /* Send MODE SELECT command */
    printf("Prepare command ...\n");

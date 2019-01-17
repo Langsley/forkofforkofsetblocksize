@@ -18,5 +18,5 @@ echo ""
 for var in "$@"
 do
     echo "formatting: $var"
-    time ./setblocksize -b512 -t1200 $var
+    time ./setblocksize -b512 -t1200 -y $var
 done
